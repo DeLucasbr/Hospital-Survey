@@ -1,0 +1,14 @@
+﻿Arquivo,Tipo,Descrição,Importância,Tamanho_KB
+main.py,Backend,"Aplicação principal FastAPI com modelos SQLAlchemy, APIs e lógica de negócio",Crítico,17.5
+templates/base.html,Frontend,Template HTML base com CSS Bootstrap e estilos customizados para hospital,Alto,15.2
+templates/survey.html,Frontend,"Interface da pesquisa otimizada para tablets, replicando layout React Native",Crítico,18.7
+templates/dashboard.html,Frontend,Dashboard de insights com gráficos Chart.js para análise da diretoria,Alto,12.4
+database_setup.sql,Banco de Dados,"Script MySQL completo com tabelas, índices, views e dados exemplo",Crítico,8.9
+requirements.txt,Configuração,Lista de dependências Python necessárias para o projeto,Crítico,0.3
+.env.example,Configuração,Exemplo de variáveis de ambiente para configuração do sistema,Alto,1.1
+docker-compose.yml,Deploy,Configuração Docker para deploy automatizado com MySQL e phpMyAdmin,Alto,1.0
+Dockerfile,Deploy,Container Docker para aplicação Python/FastAPI,Médio,0.6
+start.sh,Utilitário,Script automatizado de inicialização do sistema,Médio,1.8
+README.md,Documentação,Documentação completa do projeto com instruções detalhadas,Alto,7.6
+IMPLEMENTACAO.md,Documentação,Guia passo a passo para implementação no hospital,Alto,6.2
+TROUBLESHOOTING.md,Documentação,Guia de solução de problemas e manutenção,Médio,4.8

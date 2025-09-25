@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=mysql+pymysql://hospital_user:hospital_pass@db/hospital_satisfaction
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: hospital_satisfaction
+      MYSQL_USER: hospital_user
+      MYSQL_PASSWORD: hospital_pass
+      MYSQL_ROOT_PASSWORD: root_password_change_me
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database_setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: hospital_user
+      PMA_PASSWORD: hospital_pass
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
