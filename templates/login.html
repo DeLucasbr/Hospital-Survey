@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Hospital Santa Clara{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="login-container">
+                <div class="login-header">
+                    <div class="logo-placeholder mb-3">
+                        <i class="fas fa-hospital-alt fa-2x"></i>
+                    </div>
+                    <h2 class="text-center mb-0">Hospital Santa Clara</h2>
+                    <p class="text-center text-muted">Sistema de Pesquisa de Satisfação</p>
+                </div>
+
+                <div class="login-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="/login">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Usuário
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="username" name="username" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Senha
+                            </label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Entrar
+                        </button>
+                    </form>
+                </div>
+
+                <div class="login-footer">
+                    <p class="text-center text-muted small">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Acesso restrito à diretoria
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #034C8C, #3B7D8C);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .login-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, #034C8C, #3B7D8C);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .login-header .logo-placeholder {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-body {
+        padding: 2rem;
+    }
+
+    .login-footer {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .form-control:focus {
+        border-color: #034C8C;
+        box-shadow: 0 0 0 0.2rem rgba(3, 76, 140, 0.25);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #034C8C, #3B7D8C);
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(3, 76, 140, 0.3);
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}

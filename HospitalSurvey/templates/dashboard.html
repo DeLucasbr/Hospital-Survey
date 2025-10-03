@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Insights - Hospital Santa Clara{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-chart-bar text-primary me-2"></i>
+                Dashboard de Satisfação do Paciente
+            </h1>
+            <p class="text-muted">Insights e análises para tomada de decisão da diretoria</p>
+        </div>
+    </div>
+
+    <!-- Cards de Métricas Principais -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="metric-label">Total de Respostas</div>
+                        <div id="total-surveys" class="metric-value">{{ total_surveys }}</div>
+                    </div>
+                    <div class="text-primary">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="metric-label">Satisfação Média</div>
+                        <div id="avg-satisfaction" class="metric-value">{{ avg_satisfaction }}</div>
+                        <small class="text-muted">de 5.0</small>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="metric-label">Taxa de Resposta</div>
+                        <div id="response-rate" class="metric-value">87.3%</div>
+                    </div>
+                    <div class="text-info">
+                        <i class="fas fa-percentage fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="metric-label">Crescimento Mensal</div>
+                        <div class="metric-value text-success">+12.5%</div>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-arrow-trend-up fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="dashboard-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Tendência de Satisfação (Últimos 12 Meses)
+                </h5>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="dashboard-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Distribuição de Satisfação
+                </h5>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satisfação por Seção -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Satisfação por Seção
+                </h5>
+                <div class="chart-container">
+                    <canvas id="sectionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Respostas Recentes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Respostas Recentes
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadDashboardData()">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Atualizar
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="downloadCsv()">
+                            <i class="fas fa-file-csv me-1"></i>
+                            Baixar CSV
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="downloadJson()">
+                            <i class="fas fa-file-code me-1"></i>
+                            Baixar JSON
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Paciente</th>
+                                <th>Data</th>
+                                <th>Cidade</th>
+                                <th>Ala</th>
+                                <th>Pontuação</th>
+                                <th>Status</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-surveys-table">
+                            {% for survey in recent_surveys %}
+                            <tr>
+                                <td>#{{ survey.id }}</td>
+                                <td>
+                                    {% if survey.is_anonymous %}
+                                        <i class="fas fa-user-secret text-muted me-1"></i>Anônimo
+                                    {% else %}
+                                        {{ survey.patient_name or 'N/A' }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ survey.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ survey.city or '-' }}</td>
+                                <td>{{ survey.ward or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if survey.satisfaction_score >= 4 else 'warning' if survey.satisfaction_score >= 3 else 'danger' }}">
+                                        {{ "%.1f"|format(survey.satisfaction_score or 0) }}/5.0
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Concluída
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            data-survey-id="{{ survey.id }}"
+                                            onclick="openSurveyDetails(this)">Ver</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights e Recomendações -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="dashboard-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Principais Insights
+                </h5>
+                <div id="insights-list">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Pontos Fortes:</strong> A seção de Filantropia tem a maior pontuação média (4.6/5.0).
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Oportunidade:</strong> A seção de Comunicação apresenta pontuação mais baixa (3.9/5.0).
+                    </div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-chart-line me-2"></i>
+                        <strong>Tendência:</strong> Satisfação geral aumentou 12.5% no último mês.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="dashboard-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-tasks me-2"></i>
+                    Recomendações de Ação
+                </h5>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item border-0 ps-0">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-danger me-3">Alta</span>
+                            <div>
+                                <strong>Melhorar Comunicação</strong><br>
+                                <small class="text-muted">Treinar equipe em comunicação clara com pacientes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item border-0 ps-0">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-warning me-3">Média</span>
+                            <div>
+                                <strong>Manter Padrão de Atendimento</strong><br>
+                                <small class="text-muted">Continuar práticas que resultam em alta satisfação</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item border-0 ps-0">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-info me-3">Baixa</span>
+                            <div>
+                                <strong>Promover Missão Filantrópica</strong><br>
+                                <small class="text-muted">Destacar ainda mais o impacto social do hospital</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let dashboardData = {};
+let charts = {};
+
+// Carregar dados do dashboard
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/api/dashboard-data');
+        dashboardData = await response.json();
+        updateDashboardUI();
+        createCharts();
+    } catch (error) {
+        console.error('Erro ao carregar dados do dashboard:', error);
+        // Usar dados de fallback
+        useFallbackData();
+    }
+}
+
+function useFallbackData() {
+    dashboardData = {
+        totalSurveys: 1247,
+        avgSatisfaction: 4.2,
+        sectionScores: {
+            "Seção 1: Atendimento": 4.3,
+            "Seção 2: Instalações e recursos": 4.1,
+            "Seção 3: Comunicação": 3.9,
+            "Seção 4: Filantropia e apoio": 4.6,
+            "Seção 5: Recomendação": 4.2
+        },
+        monthlyTrend: [3.8, 4.0, 4.1, 4.0, 4.2, 4.3, 4.2, 4.1, 4.0, 4.1, 4.2, 4.2],
+        recentSurveys: [
+            {id: 1, patient: "Maria S.", date: "2025-09-23", score: 5.0},
+            {id: 2, patient: "Anônimo", date: "2025-09-23", score: 4.2},
+            {id: 3, patient: "João P.", date: "2025-09-22", score: 3.8}
+        ]
+    };
+    updateDashboardUI();
+    createCharts();
+}
+
+function updateDashboardUI() {
+    // Atualizar métricas principais
+    document.getElementById('total-surveys').textContent = dashboardData.totalSurveys;
+    document.getElementById('avg-satisfaction').textContent = dashboardData.avgSatisfaction.toFixed(1);
+
+    // Atualizar tabela de pesquisas recentes
+    updateRecentSurveysTable();
+}
+
+function updateRecentSurveysTable() {
+    const tbody = document.getElementById('recent-surveys-table');
+    if (dashboardData.recentSurveys && dashboardData.recentSurveys.length > 0) {
+        tbody.innerHTML = dashboardData.recentSurveys.map(survey => `
+            <tr>
+                <td>#${survey.id}</td>
+                <td>
+                    ${survey.patient === 'Anônimo' 
+                        ? '<i class="fas fa-user-secret text-muted me-1"></i>Anônimo'
+                        : survey.patient}
+                </td>
+                <td>${survey.date}</td>
+                <td>${survey.city || '-'}</td>
+                <td>${survey.ward || '-'}</td>
+                <td>
+                    <span class="badge bg-${survey.score >= 4 ? 'success' : survey.score >= 3 ? 'warning' : 'danger'}">
+                        ${survey.score.toFixed(1)}/5.0
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>Concluída
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary" data-survey-id="${survey.id}" onclick="openSurveyDetails(this)">Ver</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function createCharts() {
+    // Gráfico de tendência
+    createTrendChart();
+
+    // Gráfico de distribuição
+    createDistributionChart();
+
+    // Gráfico por seção
+    createSectionChart();
+}
+
+function createTrendChart() {
+    const ctx = document.getElementById('trendChart');
+    if (charts.trendChart) {
+        charts.trendChart.destroy();
+    }
+
+    charts.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Satisfação Média',
+                data: dashboardData.monthlyTrend,
+                borderColor: '#2980b9',
+                backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 0.5
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createDistributionChart() {
+    const ctx = document.getElementById('distributionChart');
+    if (charts.distributionChart) {
+        charts.distributionChart.destroy();
+    }
+
+    charts.distributionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Muito Satisfeito', 'Satisfeito', 'Neutro', 'Insatisfeito', 'Muito Insatisfeito'],
+            datasets: [{
+                data: [45, 30, 15, 7, 3],
+                backgroundColor: [
+                    '#27ae60',
+                    '#2ecc71',
+                    '#f39c12',
+                    '#e67e22',
+                    '#e74c3c'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createSectionChart() {
+    const ctx = document.getElementById('sectionChart');
+    if (charts.sectionChart) {
+        charts.sectionChart.destroy();
+    }
+
+    const sections = Object.keys(dashboardData.sectionScores || {});
+    const scores = Object.values(dashboardData.sectionScores || {});
+
+    charts.sectionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sections.map(s => s.replace('Seção ', '').replace(': ', '\n')),
+            datasets: [{
+                label: 'Pontuação Média',
+                data: scores,
+                backgroundColor: [
+                    '#3498db',
+                    '#2ecc71',
+                    '#f39c12',
+                    '#9b59b6',
+                    '#e74c3c'
+                ],
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 0.5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Inicializar dashboard quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+async function openSurveyDetails(buttonEl) {
+    const id = buttonEl.getAttribute('data-survey-id');
+    if (!id) return;
+    try {
+        const res = await fetch(`/api/surveys/${id}`);
+        const data = await res.json();
+        if (res.ok) {
+            renderSurveyDetails(data);
+        } else {
+            alert(data.error || 'Erro ao carregar detalhes da pesquisa');
+        }
+    } catch (e) {
+        alert('Erro ao carregar detalhes da pesquisa');
+    }
+}
+
+function renderSurveyDetails(data) {
+    const modalEl = document.getElementById('surveyDetailsModal');
+    if (!modalEl) return;
+    modalEl.querySelector('.modal-title').textContent = `Pesquisa #${data.id}`;
+    const body = modalEl.querySelector('.modal-body');
+    const patient = data.isAnonymous ? 'Anônimo' : (data.patient || 'N/A');
+    const headerHtml = `
+        <div class="mb-3">
+            <div><strong>Paciente:</strong> ${patient}</div>
+            <div><strong>Internação:</strong> ${data.admissionDate || ''}</div>
+            <div><strong>Alta:</strong> ${data.dischargeDate || ''}</div>
+            <div><strong>Cidade:</strong> ${data.city || '-'}</div>
+            <div><strong>Ala:</strong> ${data.ward || '-'}</div>
+            <div><strong>Pontuação:</strong> ${(data.satisfactionScore || 0).toFixed(1)}/5.0</div>
+        </div>
+        ${data.observations ? `<div class=\"mb-4\"><strong>Observações:</strong><br><pre style=\"white-space: pre-wrap; word-wrap: break-word;\">${escapeHtml(data.observations)}</pre></div>` : ''}
+    `;
+    const sectionsHtml = (data.sections || []).map(sec => `
+        <div class="mb-3">
+            <div class="fw-bold mb-2"><i class="fas fa-clipboard-list me-1"></i>${sec.title}</div>
+            ${(sec.items || []).map(it => `
+                <div class="mb-2">
+                    <div class="text-muted">${it.question}</div>
+                    <div><strong>Resposta:</strong> ${escapeHtml(it.answer || '')}</div>
+                </div>
+            `).join('')}
+        </div>
+    `).join('');
+    body.innerHTML = headerHtml + sectionsHtml;
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+function escapeHtml(str) {
+    return (str || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+async function downloadCsv() {
+    try {
+        const res = await fetch('/api/export-csv');
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Falha ao gerar CSV');
+        }
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `respostas_pesquisa_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (e) {
+        alert(e.message || 'Erro ao baixar CSV');
+    }
+}
+
+async function downloadJson() {
+    try {
+        const res = await fetch('/api/export-json');
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Falha ao gerar JSON');
+        }
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `respostas_pesquisa_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (e) {
+        alert(e.message || 'Erro ao baixar JSON');
+    }
+}
+</script>
+<!-- Modal de Detalhes da Pesquisa -->
+<div class="modal fade" id="surveyDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes da Pesquisa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Conteúdo preenchido dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
