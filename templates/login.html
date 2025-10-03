@@ -11,8 +11,8 @@
                     <div class="logo-placeholder mb-3">
                         <i class="fas fa-hospital-alt fa-2x"></i>
                     </div>
-                    <h2 class="text-center mb-0">Hospital Santa Clara</h2>
-                    <p class="text-center text-muted">Sistema de Pesquisa de Satisfação</p>
+                    <h2 class="mb-0">Hospital Santa Clara</h2>
+                    <p class="text-muted">Sistema de Pesquisa de Satisfação</p>
                 </div>
 
                 <div class="login-body">
@@ -46,7 +46,7 @@
                 </div>
 
                 <div class="login-footer">
-                    <p class="text-center text-muted small">
+                    <p class="text-center text-muted small mb-0">
                         <i class="fas fa-shield-alt me-1"></i>
                         Acesso restrito à diretoria
                     </p>
@@ -77,6 +77,10 @@
         background: linear-gradient(135deg, #034C8C, #3B7D8C);
         color: white;
         padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         text-align: center;
     }
 
@@ -85,7 +89,6 @@
         height: 80px;
         background: rgba(255,255,255,0.2);
         border-radius: 50%;
-        margin: 0 auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -128,6 +131,10 @@
     .alert-danger {
         background-color: #f8d7da;
         color: #721c24;
+    }
+
+    .login-footer p {
+        margin-bottom: 0;
     }
 </style>
 {% endblock %}
